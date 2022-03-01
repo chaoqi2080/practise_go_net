@@ -7,6 +7,7 @@ import (
 	"practise_go_net/bz_server/handler"
 	"practise_go_net/bz_server/msg"
 	"practise_go_net/common/log"
+	"practise_go_net/common/main_thread"
 )
 
 var upgrader = &websocket.Upgrader{
@@ -65,9 +66,10 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		cmdHandler(conn, newMsgX)
+		main_thread.Process(func() {
+			cmdHandler(conn, newMsgX)
+		})
 	}
-
 }
 
 func main() {

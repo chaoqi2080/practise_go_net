@@ -20,6 +20,10 @@ func getMsgCodeByName(msgName string) (int16, error) {
 		init2Map()
 	}
 
+	msgName = strings.ToLower(
+		strings.Replace(msgName, "_", "", -1),
+	)
+
 	return msgNameAndMsgCodeMap[msgName], nil
 }
 

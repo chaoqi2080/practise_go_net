@@ -25,4 +25,26 @@ func userLoginCmdHandler(conn *websocket.Conn, message *dynamicpb.Message) {
 		cmd.GetUserName(),
 		cmd.GetPassword(),
 	)
+
+	result := &msg.UserLoginResult{
+		UserId:     1,
+		UserName:   cmd.GetUserName(),
+		HeroAvatar: "Hero_Shaman",
+	}
+
+	resultArray, err := msg.Encode(result)
+	if err != nil {
+		log.Error(
+			"组合消息失败:%v",
+			err.Error(),
+		)
+	}
+
+	err = conn.WriteMessage(websocket.BinaryMessage, resultArray)
+	if err != nil {
+		log.Error(
+			"发送消息失败:%v",
+			err.Error(),
+		)
+	}
 }

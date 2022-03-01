@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"github.com/gorilla/websocket"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
 	"practise_go_net/bz_server/msg"
@@ -12,7 +11,7 @@ func init() {
 	MsgCodeAndHandlerMap[uint16(msg.MsgCode_USER_LOGIN_CMD.Number())] = userLoginCmdHandler
 }
 
-func userLoginCmdHandler(conn *websocket.Conn, message *dynamicpb.Message) {
+func userLoginCmdHandler(ctx MyCmdContext, message *dynamicpb.Message) {
 	cmd := &msg.UserLoginCmd{}
 
 	message.Range(func(descriptor protoreflect.FieldDescriptor, value protoreflect.Value) bool {
@@ -25,4 +24,12 @@ func userLoginCmdHandler(conn *websocket.Conn, message *dynamicpb.Message) {
 		cmd.GetUserName(),
 		cmd.GetPassword(),
 	)
+
+	result := &msg.UserLoginResult{
+		UserId:     1,
+		UserName:   cmd.GetUserName(),
+		HeroAvatar: "Hero_Shaman",
+	}
+
+	ctx.Write(result)
 }

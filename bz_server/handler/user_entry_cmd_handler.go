@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"github.com/gorilla/websocket"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
 	"practise_go_net/bz_server/msg"
@@ -12,7 +11,7 @@ func init() {
 	MsgCodeAndHandlerMap[uint16(msg.MsgCode_USER_ENTRY_CMD.Number())] = userEnterCmdHandler
 }
 
-func userEnterCmdHandler(conn *websocket.Conn, message *dynamicpb.Message) {
+func userEnterCmdHandler(ctx MyCmdContext, message *dynamicpb.Message) {
 	cmd := &msg.UserEntryCmd{}
 
 	message.Range(func(descriptor protoreflect.FieldDescriptor, value protoreflect.Value) bool {

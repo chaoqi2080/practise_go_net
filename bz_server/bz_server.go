@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"github.com/gorilla/websocket"
 	"net/http"
+	"practise_go_net/bz_server/handler"
 	"practise_go_net/bz_server/msg"
 	"practise_go_net/common/log"
 )
@@ -42,18 +43,29 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 
 		msgCode := binary.BigEndian.Uint16(msgData[2:4])
 
-		cmd, err := msg.Decode(msgData[4:], int16(msgCode))
+		newMsgX, err := msg.Decode(msgData[4:], int16(msgCode))
 		if err != nil {
 			log.Error("解码失败， %v", err.Error())
 			continue
 		}
 
-		log.Info(
-			"收到消息: msgCode:%v, msgName:%v, cmd:%v",
-			msgCode,
-			cmd.Descriptor().Name(),
-			cmd,
-		)
+		//log.Info(
+		//	"收到消息: msgCode:%v, msgName:%v, newMsgX:%v",
+		//	msgCode,
+		//	newMsgX.Descriptor().Name(),
+		//	newMsgX,
+		//)
+
+		cmdHandler := handler.CreateCmdHandler(msgCode)
+		if cmdHandler == nil {
+			log.Error(
+				"没有找到消息处理器, msgCode:%v",
+				msgCode,
+			)
+			continue
+		}
+
+		cmdHandler(conn, newMsgX)
 	}
 
 }

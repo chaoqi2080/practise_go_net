@@ -18,7 +18,7 @@ type WebsocketCmdContext struct {
 	userId       int64
 	remoteIpAddr string
 	Conn         *websocket.Conn
-	Chan         chan protoreflect.ProtoMessage
+	sendMsgQ     chan protoreflect.ProtoMessage
 }
 
 func (ctx *WebsocketCmdContext) BindUserId(userId int64) {
@@ -38,7 +38,7 @@ func (ctx *WebsocketCmdContext) Write(msgObj protoreflect.ProtoMessage) {
 		return
 	}
 
-	ctx.Chan <- msgObj
+	ctx.sendMsgQ <- msgObj
 }
 
 func (ctx *WebsocketCmdContext) SendError(errorCode int, errorInfo string) {
@@ -91,9 +91,9 @@ func (ctx *WebsocketCmdContext) LoopReadMsg() {
 	}
 }
 
-func (ctx *WebsocketCmdContext) LoopWriteMsgBack() {
-	if ctx.Chan == nil {
-		ctx.Chan = make(chan protoreflect.ProtoMessage, 64)
+func (ctx *WebsocketCmdContext) LoopWriteMsg() {
+	if ctx.sendMsgQ == nil {
+		ctx.sendMsgQ = make(chan protoreflect.ProtoMessage, 64)
 	}
 
 	//控制每一个消息大小
@@ -104,7 +104,7 @@ func (ctx *WebsocketCmdContext) LoopWriteMsgBack() {
 	tMsgNum := 0
 
 	for {
-		msgObj := <-ctx.Chan
+		msgObj := <-ctx.sendMsgQ
 
 		if msgObj == nil {
 			continue
@@ -117,6 +117,7 @@ func (ctx *WebsocketCmdContext) LoopWriteMsgBack() {
 		}
 
 		if tMsgNum > msgPerSecond {
+			log.Error("消息过于频繁")
 			return
 		}
 

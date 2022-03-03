@@ -31,5 +31,6 @@ func userLoginCmdHandler(ctx MyCmdContext, message *dynamicpb.Message) {
 		HeroAvatar: "Hero_Shaman",
 	}
 
+	ctx.BindUserId(1)
 	ctx.Write(result)
 }

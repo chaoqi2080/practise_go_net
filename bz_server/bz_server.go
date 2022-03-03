@@ -36,7 +36,7 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 		Conn: conn,
 	}
 
-	go ctx.LoopWriteMsgBack()
+	go ctx.LoopWriteMsg()
 	ctx.LoopReadMsg()
 }
 

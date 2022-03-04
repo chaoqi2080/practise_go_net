@@ -12,6 +12,7 @@ import (
 )
 
 const msgPerSecond = 16
+const oneSecond = 1000
 const msgLimitSize = 1024
 
 type WebsocketCmdContext struct {
@@ -53,6 +54,13 @@ func (ctx *WebsocketCmdContext) LoopReadMsg() {
 	if ctx.Conn == nil {
 		return
 	}
+	
+	//控制每一个消息大小
+	ctx.Conn.SetReadLimit(64 * msgLimitSize)
+
+	//控制每秒的消息数量
+	t0 := int64(0)
+	counter := 0
 
 	for {
 		_, msgData, err := ctx.Conn.ReadMessage()
@@ -60,6 +68,19 @@ func (ctx *WebsocketCmdContext) LoopReadMsg() {
 			log.Error(err.Error())
 			break
 		}
+
+		t1 := time.Now().UnixMilli()
+		if (t1 - t0) > oneSecond {
+			counter = 0
+			t0 = t1
+		}
+
+		if counter > msgPerSecond {
+			log.Error("消息过于频繁")
+			return
+		}
+
+		counter++
 
 		msgCode := binary.BigEndian.Uint16(msgData[2:4])
 
@@ -96,32 +117,12 @@ func (ctx *WebsocketCmdContext) LoopWriteMsg() {
 		ctx.sendMsgQ = make(chan protoreflect.ProtoMessage, 64)
 	}
 
-	//控制每一个消息大小
-	ctx.Conn.SetReadLimit(64 * msgLimitSize)
-
-	//控制每秒的消息数量
-	tStart := int64(0)
-	tMsgNum := 0
-
 	for {
 		msgObj := <-ctx.sendMsgQ
 
 		if msgObj == nil {
 			continue
 		}
-
-		tNow := time.Now().UnixMilli()
-		if (tNow - tStart) > 1000 {
-			tMsgNum = 0
-			tStart = tNow
-		}
-
-		if tMsgNum > msgPerSecond {
-			log.Error("消息过于频繁")
-			return
-		}
-
-		tMsgNum++
 
 		resultArray, err := msg.Encode(msgObj)
 

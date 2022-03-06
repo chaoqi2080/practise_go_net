@@ -36,7 +36,9 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 		Conn: conn,
 	}
 
-	go ctx.LoopWriteMsg()
+	//循环发送消息
+	ctx.LoopSendMsg()
+	//循环读取消息
 	ctx.LoopReadMsg()
 }
 

@@ -54,7 +54,7 @@ func (ctx *WebsocketCmdContext) LoopReadMsg() {
 	if ctx.Conn == nil {
 		return
 	}
-	
+
 	//控制每一个消息大小
 	ctx.Conn.SetReadLimit(64 * msgLimitSize)
 
@@ -112,34 +112,37 @@ func (ctx *WebsocketCmdContext) LoopReadMsg() {
 	}
 }
 
-func (ctx *WebsocketCmdContext) LoopWriteMsg() {
+func (ctx *WebsocketCmdContext) LoopSendMsg() {
+	//构建发送队列
 	if ctx.sendMsgQ == nil {
 		ctx.sendMsgQ = make(chan protoreflect.ProtoMessage, 64)
 	}
 
-	for {
-		msgObj := <-ctx.sendMsgQ
+	go func() {
+		for {
+			msgObj := <-ctx.sendMsgQ
 
-		if msgObj == nil {
-			continue
+			if msgObj == nil {
+				continue
+			}
+
+			resultArray, err := msg.Encode(msgObj)
+
+			if err != nil {
+				log.Error(
+					"组合消息失败:%v",
+					err.Error(),
+				)
+			}
+
+			err = ctx.Conn.WriteMessage(websocket.BinaryMessage, resultArray)
+
+			if err != nil {
+				log.Error(
+					"发送消息失败:%v",
+					err.Error(),
+				)
+			}
 		}
-
-		resultArray, err := msg.Encode(msgObj)
-
-		if err != nil {
-			log.Error(
-				"组合消息失败:%v",
-				err.Error(),
-			)
-		}
-
-		err = ctx.Conn.WriteMessage(websocket.BinaryMessage, resultArray)
-
-		if err != nil {
-			log.Error(
-				"发送消息失败:%v",
-				err.Error(),
-			)
-		}
-	}
+	}()
 }

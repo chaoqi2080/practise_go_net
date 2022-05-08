@@ -4,6 +4,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
 	"practise_go_net/bz_server/mod/login/loginsrv"
+	"practise_go_net/bz_server/mod/user/userdata"
 	"practise_go_net/bz_server/msg"
 	"practise_go_net/common/log"
 )
@@ -26,22 +27,33 @@ func userLoginCmdHandler(ctx MyCmdContext, message *dynamicpb.Message) {
 		cmd.Password,
 	)
 
-	user := loginsrv.LoginByPasswordAsync(cmd.UserName, cmd.Password)
+	returnedObj := loginsrv.LoginByPasswordAsync(cmd.UserName, cmd.Password)
 
-	if user == nil {
+	if returnedObj == nil {
 		log.Error(
-			"用户不存在 :%v",
+			"返回的 obj 为空",
 			cmd.UserName,
 		)
 		return
 	}
 
-	result := &msg.UserLoginResult{
-		UserId:     uint32(user.UserId),
-		UserName:   user.UserName,
-		HeroAvatar: user.HeroAvatar,
-	}
+	returnedObj.OnComplete(func() {
+		user := returnedObj.GetReturnedObj().(*userdata.User)
+		if user == nil {
+			log.Error(
+				"用户不存在 :%v",
+				cmd.UserName,
+			)
+			return
+		}
 
-	ctx.BindUserId(user.UserId)
-	ctx.Write(result)
+		result := &msg.UserLoginResult{
+			UserId:     uint32(user.UserId),
+			UserName:   user.UserName,
+			HeroAvatar: user.HeroAvatar,
+		}
+
+		ctx.BindUserId(user.UserId)
+		ctx.Write(result)
+	})
 }

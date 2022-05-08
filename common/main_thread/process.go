@@ -1,6 +1,9 @@
 package main_thread
 
-import "sync"
+import (
+	"fmt"
+	"sync"
+)
 
 const mainQSize = 2048
 
@@ -36,4 +39,6 @@ func execute() {
 			task()
 		}
 	}
+
+	fmt.Println("hello")
 }

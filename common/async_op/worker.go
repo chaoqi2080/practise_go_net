@@ -10,12 +10,18 @@ type worker struct {
 }
 
 func (w worker) process(asyncOp func(), continueWithOp func()) {
+	if asyncOp == nil {
+		log.Error("asyncOp 为空")
+		return
+	}
+
 	if w.taskQ == nil {
 		log.Error("worker taskQ is empty")
 		return
 	}
 
 	w.taskQ <- func() {
+		//执行异步操作
 		asyncOp()
 
 		//如果继续执行函数不为空，则把这个函数丢入单协程的业务协程进行处理

@@ -40,6 +40,8 @@ func LoginByPasswordAsync(userName string, password string) *base.AsyncBizResult
 			user.LastLoginTime = tNow
 			userdao.SaveOrUpdate(user)
 
+			userdata.GetUserGroup().Add(user)
+
 			bizResult.SetReturnedObj(user)
 		},
 		nil,

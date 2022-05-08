@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/gorilla/websocket"
 	"net/http"
-	mysocket "practise_go_net/bz_server/network/websocket"
+	mywebsocket "practise_go_net/bz_server/network/websocket"
 	"practise_go_net/common/log"
 )
 
@@ -14,6 +14,8 @@ var upgrader = &websocket.Upgrader{
 		return true
 	},
 }
+
+var sessionId int32 = 0
 
 func websocketHandler(w http.ResponseWriter, r *http.Request) {
 	if w == nil || r == nil {
@@ -32,9 +34,16 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Info("有新客户端连接")
 
-	ctx := &mysocket.WebsocketCmdContext{
-		Conn: conn,
+	//递增 sessionId
+	sessionId += 1
+
+	ctx := &mywebsocket.CmdContextImpl{
+		Conn:      conn,
+		SessionId: sessionId,
 	}
+
+	mywebsocket.GetCmdContextImplGroup().Add(ctx)
+	defer mywebsocket.GetCmdContextImplGroup().RemoveBySessionId(ctx.SessionId)
 
 	//循环发送消息
 	ctx.LoopSendMsg()

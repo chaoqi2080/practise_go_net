@@ -36,7 +36,7 @@ func Encode(msgObj protoreflect.ProtoMessage) ([]byte, error) {
 }
 
 func Decode(msgData []byte, msgCode int16) (*dynamicpb.Message, error) {
-	if len(msgData) <= 0 || msgCode < 0 {
+	if msgCode < 0 {
 		return nil, errors.New("传入参数为空")
 	}
 

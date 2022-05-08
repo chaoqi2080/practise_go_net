@@ -15,26 +15,27 @@ const msgPerSecond = 16
 const oneSecond = 1000
 const msgLimitSize = 1024
 
-type WebsocketCmdContext struct {
+type CmdContextImpl struct {
 	userId       int64
 	remoteIpAddr string
 	Conn         *websocket.Conn
 	sendMsgQ     chan protoreflect.ProtoMessage
+	SessionId    int32
 }
 
-func (ctx *WebsocketCmdContext) BindUserId(userId int64) {
+func (ctx *CmdContextImpl) BindUserId(userId int64) {
 	ctx.userId = userId
 }
 
-func (ctx *WebsocketCmdContext) GetUserId() (userId int64, err error) {
-	return ctx.userId, nil
+func (ctx *CmdContextImpl) GetUserId() (userId int64) {
+	return ctx.userId
 }
 
-func (ctx *WebsocketCmdContext) GetClientIpAddr() string {
+func (ctx *CmdContextImpl) GetClientIpAddr() string {
 	return "127.0.0.1"
 }
 
-func (ctx *WebsocketCmdContext) Write(msgObj protoreflect.ProtoMessage) {
+func (ctx *CmdContextImpl) Write(msgObj protoreflect.ProtoMessage) {
 	if msgObj == nil {
 		return
 	}
@@ -42,15 +43,15 @@ func (ctx *WebsocketCmdContext) Write(msgObj protoreflect.ProtoMessage) {
 	ctx.sendMsgQ <- msgObj
 }
 
-func (ctx *WebsocketCmdContext) SendError(errorCode int, errorInfo string) {
+func (ctx *CmdContextImpl) SendError(errorCode int, errorInfo string) {
 
 }
 
-func (ctx *WebsocketCmdContext) Disconnect() {
+func (ctx *CmdContextImpl) Disconnect() {
 
 }
 
-func (ctx *WebsocketCmdContext) LoopReadMsg() {
+func (ctx *CmdContextImpl) LoopReadMsg() {
 	if ctx.Conn == nil {
 		return
 	}
@@ -112,7 +113,7 @@ func (ctx *WebsocketCmdContext) LoopReadMsg() {
 	}
 }
 
-func (ctx *WebsocketCmdContext) LoopSendMsg() {
+func (ctx *CmdContextImpl) LoopSendMsg() {
 	//构建发送队列
 	if ctx.sendMsgQ == nil {
 		ctx.sendMsgQ = make(chan protoreflect.ProtoMessage, 64)

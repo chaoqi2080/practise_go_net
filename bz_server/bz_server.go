@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/gorilla/websocket"
 	"net/http"
+	"practise_go_net/bz_server/network/broadcaster"
 	mywebsocket "practise_go_net/bz_server/network/websocket"
 	"practise_go_net/common/log"
 )
@@ -42,8 +43,8 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 		SessionId: sessionId,
 	}
 
-	mywebsocket.GetCmdContextImplGroup().Add(ctx)
-	defer mywebsocket.GetCmdContextImplGroup().RemoveBySessionId(ctx.SessionId)
+	broadcaster.AddCmdCtx(sessionId, ctx)
+	defer broadcaster.RemoveCmdCtxBySessionId(sessionId)
 
 	//循环发送消息
 	ctx.LoopSendMsg()

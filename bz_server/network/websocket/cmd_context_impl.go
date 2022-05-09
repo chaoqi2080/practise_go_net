@@ -32,7 +32,7 @@ func (ctx *CmdContextImpl) GetUserId() (userId int64) {
 }
 
 func (ctx *CmdContextImpl) GetClientIpAddr() string {
-	return "127.0.0.1"
+	return ctx.Conn.RemoteAddr().String()
 }
 
 func (ctx *CmdContextImpl) Write(msgObj protoreflect.ProtoMessage) {
@@ -49,6 +49,41 @@ func (ctx *CmdContextImpl) SendError(errorCode int, errorInfo string) {
 
 func (ctx *CmdContextImpl) Disconnect() {
 
+}
+
+func (ctx *CmdContextImpl) LoopSendMsg() {
+	//构建发送队列
+	if ctx.sendMsgQ == nil {
+		ctx.sendMsgQ = make(chan protoreflect.ProtoMessage, 64)
+	}
+
+	go func() {
+		for {
+			msgObj := <-ctx.sendMsgQ
+
+			if msgObj == nil {
+				continue
+			}
+
+			resultArray, err := msg.Encode(msgObj)
+
+			if err != nil {
+				log.Error(
+					"组合消息失败:%v",
+					err.Error(),
+				)
+			}
+
+			err = ctx.Conn.WriteMessage(websocket.BinaryMessage, resultArray)
+
+			if err != nil {
+				log.Error(
+					"发送消息失败:%v",
+					err.Error(),
+				)
+			}
+		}
+	}()
 }
 
 func (ctx *CmdContextImpl) LoopReadMsg() {
@@ -91,12 +126,11 @@ func (ctx *CmdContextImpl) LoopReadMsg() {
 			continue
 		}
 
-		//log.Info(
-		//	"收到消息: msgCode:%v, msgName:%v, newMsgX:%v",
-		//	msgCode,
-		//	newMsgX.Descriptor().Name(),
-		//	newMsgX,
-		//)
+		log.Info(
+			"收到消息: msgCode:%v, msgName:%v",
+			msgCode,
+			newMsgX.Descriptor().Name(),
+		)
 
 		cmdHandler := handler.CreateCmdHandler(msgCode)
 		if cmdHandler == nil {
@@ -111,39 +145,7 @@ func (ctx *CmdContextImpl) LoopReadMsg() {
 			cmdHandler(ctx, newMsgX)
 		})
 	}
-}
 
-func (ctx *CmdContextImpl) LoopSendMsg() {
-	//构建发送队列
-	if ctx.sendMsgQ == nil {
-		ctx.sendMsgQ = make(chan protoreflect.ProtoMessage, 64)
-	}
-
-	go func() {
-		for {
-			msgObj := <-ctx.sendMsgQ
-
-			if msgObj == nil {
-				continue
-			}
-
-			resultArray, err := msg.Encode(msgObj)
-
-			if err != nil {
-				log.Error(
-					"组合消息失败:%v",
-					err.Error(),
-				)
-			}
-
-			err = ctx.Conn.WriteMessage(websocket.BinaryMessage, resultArray)
-
-			if err != nil {
-				log.Error(
-					"发送消息失败:%v",
-					err.Error(),
-				)
-			}
-		}
-	}()
+	//广播用户断线消息
+	handler.OnUserQuitHandler(ctx)
 }

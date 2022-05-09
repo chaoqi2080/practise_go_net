@@ -3,6 +3,7 @@ package handler
 import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
+	"practise_go_net/bz_server/base"
 	"practise_go_net/bz_server/mod/login/loginsrv"
 	"practise_go_net/bz_server/mod/user/userdata"
 	"practise_go_net/bz_server/msg"
@@ -13,7 +14,7 @@ func init() {
 	MsgCodeAndHandlerMap[uint16(msg.MsgCode_USER_LOGIN_CMD.Number())] = userLoginCmdHandler
 }
 
-func userLoginCmdHandler(ctx MyCmdContext, message *dynamicpb.Message) {
+func userLoginCmdHandler(ctx base.MyCmdContext, message *dynamicpb.Message) {
 	cmd := &msg.UserLoginCmd{}
 
 	message.Range(func(descriptor protoreflect.FieldDescriptor, value protoreflect.Value) bool {

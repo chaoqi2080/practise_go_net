@@ -2,8 +2,10 @@ package handler
 
 import (
 	"google.golang.org/protobuf/types/dynamicpb"
+	"practise_go_net/bz_server/base"
 	"practise_go_net/bz_server/mod/user/userdata"
 	"practise_go_net/bz_server/msg"
+	"practise_go_net/bz_server/network/broadcaster"
 	"practise_go_net/common/log"
 )
 
@@ -12,7 +14,7 @@ func init() {
 }
 
 //用户入场指令处理器
-func userEntryCmdHandler(ctx MyCmdContext, message *dynamicpb.Message) {
+func userEntryCmdHandler(ctx base.MyCmdContext, _ *dynamicpb.Message) {
 	if ctx == nil || ctx.GetUserId() <= 0 {
 		return
 	}
@@ -38,5 +40,7 @@ func userEntryCmdHandler(ctx MyCmdContext, message *dynamicpb.Message) {
 		HeroAvatar: user.HeroAvatar,
 	}
 
-	ctx.Write(userEntryResult)
+	//互相引用，增加一个 c 包
+	//websocket.GetCmdContextImplGroup().Broadcast(userEntryResult)
+	broadcaster.Broadcast(userEntryResult)
 }

@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	MsgCodeAndHandlerMap[uint16(msg.MsgCode_USER_MOVE_TO_RESULT.Number())] = userMoveToCmdHandler
+	cmdHandlerMap[uint16(msg.MsgCode_USER_MOVE_TO_RESULT.Number())] = userMoveToCmdHandler
 }
 
 func userMoveToCmdHandler(ctx base.MyCmdContext, pbMsgObj *dynamicpb.Message) {

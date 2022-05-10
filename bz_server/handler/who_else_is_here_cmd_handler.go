@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	MsgCodeAndHandlerMap[uint16(msg.MsgCode_WHO_ELSE_IS_HERE_CMD.Number())] = userWhoElseIsHereCmdHandler
+	cmdHandlerMap[uint16(msg.MsgCode_WHO_ELSE_IS_HERE_CMD.Number())] = userWhoElseIsHereCmdHandler
 }
 
 //还有谁指令处理

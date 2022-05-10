@@ -53,7 +53,7 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	log.Config("/Users/chaoqi/gitcode/practise_go_net/log/game")
+	log.Config("./log/game")
 	log.Info("hello, the world.")
 
 	http.HandleFunc("/websocket", websocketHandler)

@@ -11,13 +11,13 @@ import (
 )
 
 func init() {
-	MsgCodeAndHandlerMap[uint16(msg.MsgCode_USER_LOGIN_CMD.Number())] = userLoginCmdHandler
+	cmdHandlerMap[uint16(msg.MsgCode_USER_LOGIN_CMD.Number())] = userLoginCmdHandler
 }
 
-func userLoginCmdHandler(ctx base.MyCmdContext, message *dynamicpb.Message) {
+func userLoginCmdHandler(ctx base.MyCmdContext, pbMsgObj *dynamicpb.Message) {
 	cmd := &msg.UserLoginCmd{}
 
-	message.Range(func(descriptor protoreflect.FieldDescriptor, value protoreflect.Value) bool {
+	pbMsgObj.Range(func(descriptor protoreflect.FieldDescriptor, value protoreflect.Value) bool {
 		cmd.ProtoReflect().Set(descriptor, value)
 		return true
 	})

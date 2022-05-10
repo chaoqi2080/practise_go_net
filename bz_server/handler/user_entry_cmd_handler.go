@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	MsgCodeAndHandlerMap[uint16(msg.MsgCode_USER_ENTRY_CMD.Number())] = userEntryCmdHandler
+	cmdHandlerMap[uint16(msg.MsgCode_USER_ENTRY_CMD.Number())] = userEntryCmdHandler
 }
 
 //用户入场指令处理器

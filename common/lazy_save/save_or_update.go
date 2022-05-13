@@ -1,8 +1,6 @@
 package lazy_save
 
 import (
-	"practise_go_net/bz_server/mod/user/userdao"
-	"practise_go_net/bz_server/mod/user/userdata"
 	"practise_go_net/common/log"
 	"sync"
 	"time"
@@ -55,10 +53,7 @@ func startSave() {
 
 				log.Info("执行延迟保存, lsoId = %s", currLso.GetLsoId())
 
-				//1. 单协程，会导致等待，需要多协程
-				//2. 未来有道具、任务、副本、军团等等系统，都需要延迟保存，怎么办
-				//   => common 框架代码耦合了业务逻辑代码
-				userdao.SaveOrUpdate(currLso.(*userdata.User))
+				currLso.SaveOrUpdate()
 
 				deleteLsoIdArray = append(deleteLsoIdArray, currLso.GetLsoId())
 

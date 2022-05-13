@@ -1,6 +1,10 @@
 package userdata
 
-import "fmt"
+import (
+	"fmt"
+	"practise_go_net/bz_server/mod/user/userdao"
+	"practise_go_net/common/async_op"
+)
 
 type User struct {
 	UserId         int64  `db:"user_id"`
@@ -24,4 +28,15 @@ func (user *User) GetLastUpdateTime() int64 {
 
 func (user *User) SetLastUpdateTime(val int64) {
 	user.lastUpdateTime = val
+}
+
+func (user *User) SaveOrUpdate() {
+	//循环引用问题，引入一个第三者，通过他分别调用 userdata, userdao
+	async_op.Process(
+		int(user.UserId),
+		func() {
+			userdao.SaveOrUpdate(user)
+		},
+		nil,
+	)
 }

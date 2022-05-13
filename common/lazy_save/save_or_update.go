@@ -17,18 +17,20 @@ func SaveOrUpdate(lso LazySaveObj) {
 		return
 	}
 
-	log.Info("记录延迟保存对象, lsoId = %s", lso.GetLsoId())
+	log.Info("记录延迟保存对象, lsoId = %s", lso)
 
 	nowTime := time.Now().UnixMilli()
-	existLso, _ := lsoMap.Load(lso.GetLsoId())
+	existRecord, _ := lsoMap.Load(lso)
 
-	if existLso == nil {
-		existLso.(LazySaveObj).SetLastUpdateTime(nowTime)
+	if existRecord == nil {
+		existRecord.(*lazySaveRecord).setLastUpdateTime(nowTime)
 		return
 	}
 
-	lso.SetLastUpdateTime(nowTime)
-	lsoMap.Store(lso.GetLsoId(), lso)
+	newRecord := &lazySaveRecord{}
+	newRecord.setLastUpdateTime(nowTime)
+	newRecord.lsoRef = lso
+	lsoMap.Store(lso.GetLsoId(), newRecord)
 }
 
 func startSave() {
@@ -44,18 +46,18 @@ func startSave() {
 					return true
 				}
 
-				currLso := value.(LazySaveObj)
+				curRecord := value.(lazySaveRecord)
 
-				if nowTime-currLso.GetLastUpdateTime() < 20000 {
+				if nowTime-curRecord.getLastUpdateTime() < 20000 {
 					//最后更新时间 < 20 秒
 					return true
 				}
 
-				log.Info("执行延迟保存, lsoId = %s", currLso.GetLsoId())
+				log.Info("执行延迟保存, lsoId = %s", curRecord.lsoRef.GetLsoId())
 
-				currLso.SaveOrUpdate()
+				curRecord.lsoRef.SaveOrUpdate()
 
-				deleteLsoIdArray = append(deleteLsoIdArray, currLso.GetLsoId())
+				deleteLsoIdArray = append(deleteLsoIdArray, curRecord.lsoRef.GetLsoId())
 
 				return true
 			})

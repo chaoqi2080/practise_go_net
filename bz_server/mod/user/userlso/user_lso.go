@@ -8,19 +8,19 @@ import (
 )
 
 type UserLso struct {
-	UserRef *userdata.User
+	*userdata.User
 }
 
 func (lso *UserLso) GetLsoId() string {
-	return fmt.Sprintf("User_%v", lso.UserRef.UserId)
+	return fmt.Sprintf("User_%v", lso.UserId)
 }
 
 func (lso *UserLso) SaveOrUpdate() {
 	//循环引用问题，引入一个第三者，通过他分别调用 userdata, userdao
 	async_op.Process(
-		int(lso.UserRef.UserId),
+		int(lso.UserId),
 		func() {
-			userdao.SaveOrUpdate(lso.UserRef)
+			userdao.SaveOrUpdate(lso.User)
 		},
 		nil,
 	)

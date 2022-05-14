@@ -9,7 +9,7 @@ import (
 var lsoMap = &sync.Map{}
 
 func init() {
-	go startSave()
+	startSave()
 }
 
 func SaveOrUpdate(lso LazySaveObj) {
@@ -22,14 +22,16 @@ func SaveOrUpdate(lso LazySaveObj) {
 	nowTime := time.Now().UnixMilli()
 	existRecord, _ := lsoMap.Load(lso)
 
-	if existRecord == nil {
+	if existRecord != nil {
 		existRecord.(*lazySaveRecord).setLastUpdateTime(nowTime)
 		return
 	}
 
-	newRecord := &lazySaveRecord{}
-	newRecord.setLastUpdateTime(nowTime)
-	newRecord.lsoRef = lso
+	newRecord := &lazySaveRecord{
+		lsoRef:         lso,
+		lastUpdateTime: nowTime,
+	}
+
 	lsoMap.Store(lso.GetLsoId(), newRecord)
 }
 
@@ -46,7 +48,7 @@ func startSave() {
 					return true
 				}
 
-				curRecord := value.(lazySaveRecord)
+				curRecord := value.(*lazySaveRecord)
 
 				if nowTime-curRecord.getLastUpdateTime() < 20000 {
 					//最后更新时间 < 20 秒

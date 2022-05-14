@@ -28,6 +28,9 @@ func userAttkCmdHandler(ctx base.MyCmdContext, pbMsgObj *dynamicpb.Message) {
 	})
 
 	user := userdata.GetUserGroup().GetByUserId(int64(userAttkCmd.TargetUserId))
+	if user == nil {
+		return
+	}
 
 	userAttkResult := &msg.UserAttkResult{
 		AttkUserId:   uint32(ctx.GetUserId()),
@@ -37,16 +40,20 @@ func userAttkCmdHandler(ctx base.MyCmdContext, pbMsgObj *dynamicpb.Message) {
 	broadcaster.Broadcast(userAttkResult)
 
 	//minus hp
+	var subtractHp int32 = 10
+
 	userSubtractHpResult := &msg.UserSubtractHpResult{
-		SubtractHp:   10,
+		SubtractHp:   uint32(subtractHp),
 		TargetUserId: userAttkCmd.TargetUserId,
 	}
 
-	user.CurrHp -= 10
+	user.CurrHp -= subtractHp
 
 	broadcaster.Broadcast(userSubtractHpResult)
 
-	lso := &userlso.UserLso{}
-	lso.UserRef = user
+	lso := &userlso.UserLso{
+		User: user,
+	}
+
 	lazy_save.SaveOrUpdate(lso)
 }
